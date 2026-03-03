@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Field {
+  id             Int           @id @default(autoincrement())
+  nama_lapangan  String
+  tipe           String
+  harga_per_jam  Int
+  slots          Slot[]
+  reservations   Reservation[]
+}
+
+model Slot {
+  id           Int           @id @default(autoincrement())
+  tanggal      DateTime
+  jam_mulai    String
+  jam_selesai  String
+  status       String        // "tersedia" | "terpesan"
+  field        Field         @relation(fields: [fieldId], references: [id])
+  fieldId      Int
+  reservations Reservation[] // ubah ke array karena bisa punya banyak reservasi (cancelled, dll)
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  nama         String
+  email        String        @unique
+  reservations Reservation[]
+}
+
+model Reservation {
+  id           Int           @id @default(autoincrement())
+  user         User          @relation(fields: [userId], references: [id])
+  userId       Int
+  field        Field         @relation(fields: [fieldId], references: [id])
+  fieldId      Int
+  slot         Slot          @relation(fields: [slotId], references: [id])
+  slotId       Int            // ❌ Hapus @unique agar bisa reuse slot
+  tanggal      DateTime
+  jam_mulai    String
+  jam_selesai  String
+  status       String         // "pending" | "confirmed" | "cancelled"
+}
